@@ -22,7 +22,7 @@ function parseServiceAccountCredentials(credentials) {
     if (typeof credentials === 'string') {
         try {
             return JSON.parse(credentials)
-        } catch(ex) {
+        } catch (ex) {
             return JSON.parse(fs.readFileSync(credentials, 'utf8'))
         }
     }
@@ -40,12 +40,12 @@ function handlePropertyName(cellValue, handleMode) {
     var propertyName = (cellValue || '').trim()
 
     if (handleMode === 'camel' || handleModeType === 'undefined')
-        return getWords(propertyName.toLowerCase()).map(function(word, index) {
+        return getWords(propertyName.toLowerCase()).map(function (word, index) {
             return !index ? word : capitalize(word)
         }).join('')
 
     if (handleMode === 'pascal')
-        return getWords(propertyName.toLowerCase()).map(function(word) {
+        return getWords(propertyName.toLowerCase()).map(function (word) {
             return capitalize(word)
         }).join('')
 
@@ -99,7 +99,7 @@ function parseColIdentifier(col) {
     var colType = typeof col
 
     if (colType === 'string') {
-        return col.trim().replace(/[ \.]/i, '').toLowerCase().split('').reverse().reduce(function(totalValue, letter, index) {
+        return col.trim().replace(/[ \.]/i, '').toLowerCase().split('').reverse().reduce(function (totalValue, letter, index) {
 
             var alphaIndex = ALPHABET.indexOf(letter)
 
@@ -123,7 +123,7 @@ function cellIsValid(cell) {
 }
 
 // google spreadsheet cells into json
-exports.cellsToJson = function(allCells, options) {
+exports.cellsToJson = function (allCells, options) {
 
     // setting up some options, such as defining if the data is horizontal or vertical
     options = options || {}
@@ -145,7 +145,7 @@ exports.cellsToJson = function(allCells, options) {
 
     var rows = []
 
-    allCells.forEach(function(cell) {
+    allCells.forEach(function (cell) {
 
         if (ignoredRows.indexOf(cell.row) !== -1 || ignoredCols.indexOf(cell.col) !== -1)
             return
@@ -159,8 +159,8 @@ exports.cellsToJson = function(allCells, options) {
 
     })
 
-    rows.forEach(function(col) {
-        col.sort(function(cell1, cell2) {
+    rows.forEach(function (col) {
+        col.sort(function (cell1, cell2) {
             return cell1[colProp] - cell2[colProp]
         })
     })
@@ -189,7 +189,7 @@ exports.cellsToJson = function(allCells, options) {
         properties = {}
         var headerEndRowIndex = firstRowIndex + headerSize - 1
 
-        var headerRows = rows.filter(function(row, index) {
+        var headerRows = rows.filter(function (row, index) {
             return index >= firstRowIndex && index <= headerEndRowIndex
         }).reverse()
 
@@ -199,7 +199,7 @@ exports.cellsToJson = function(allCells, options) {
 
             var propertyMap = headerRows.map(function (row, index) {
 
-                var headerCell = row.filter(function(cell) {
+                var headerCell = row.filter(function (cell) {
                     return cell[colProp] === colNumber
                 })[0]
 
@@ -212,7 +212,7 @@ exports.cellsToJson = function(allCells, options) {
                 else if (foundFirstCell && !cellIsValid(headerCell)) {
 
                     // finding the nearest filled cell to the left
-                    headerCell = row.filter(function(cell) {
+                    headerCell = row.filter(function (cell) {
                         return cell[colProp] < colNumber
                     }).reverse()[0]
 
@@ -222,8 +222,8 @@ exports.cellsToJson = function(allCells, options) {
 
                         var hasCellBelow = headerRows.filter(function (r, i) {
                             return i === index - 1
-                        }).some(function(r) {
-                            return cellIsValid(r.filter(function(cell) {
+                        }).some(function (r) {
+                            return cellIsValid(r.filter(function (cell) {
                                 return cell[colProp] === headerCell[colProp]
                             })[0])
                         })
@@ -236,14 +236,14 @@ exports.cellsToJson = function(allCells, options) {
 
                 return headerCell
 
-            }).map(function(cell) {
+            }).map(function (cell) {
 
                 if (!cellIsValid(cell))
                     return
 
                 return handlePropertyName(cell.value, options.propertyMode)
 
-            }).filter(function(n) {
+            }).filter(function (n) {
                 return n
             }).reverse()
 
@@ -262,12 +262,12 @@ exports.cellsToJson = function(allCells, options) {
 
     var finalList = isHashed ? {} : []
 
-    rows.forEach(function(cells) {
+    rows.forEach(function (cells) {
 
         var newObject = options.listOnly ? [] : {}
         var hasValues = false
 
-        cells.forEach(function(cell) {
+        cells.forEach(function (cell) {
 
             var val
             var colNumber = cell[colProp]
@@ -275,10 +275,7 @@ exports.cellsToJson = function(allCells, options) {
             if (properties && !properties[colNumber])
                 return
 
-            if (typeof cell.numericValue !== 'undefined') {
-                val = parseFloat(cell.numericValue)
-                hasValues = true
-            } else if (cell.value === 'TRUE') {
+            if (cell.value === 'TRUE') {
                 val = true
                 hasValues = true
             } else if (cell.value === 'FALSE') {
@@ -301,7 +298,7 @@ exports.cellsToJson = function(allCells, options) {
 
             if (options.listOnly) {
                 // this is guaranteed because the list is sorted as needed
-                ignoredDataNumbers.forEach(function(number) {
+                ignoredDataNumbers.forEach(function (number) {
                     newObject.splice(number - 1, 1)
                 })
             }
@@ -318,8 +315,8 @@ exports.cellsToJson = function(allCells, options) {
     return finalList
 }
 
-exports.getWorksheets = function(options) {
-    return Promise.try(function() {
+exports.getWorksheets = function (options) {
+    return Promise.try(function () {
 
         var spreadsheet = Promise.promisifyAll(new GoogleSpreadsheet(options.spreadsheetId))
 
@@ -335,52 +332,52 @@ exports.getWorksheets = function(options) {
 
         return spreadsheet
     })
-    .then(function(spreadsheet) {
-        return spreadsheet.getInfoAsync()
-    })
-    .then(function(sheetInfo) {
-        return sheetInfo.worksheets.map(function(worksheet) {
-            return Promise.promisifyAll(worksheet)
+        .then(function (spreadsheet) {
+            return spreadsheet.getInfoAsync()
         })
-    })
+        .then(function (sheetInfo) {
+            return sheetInfo.worksheets.map(function (worksheet) {
+                return Promise.promisifyAll(worksheet)
+            })
+        })
 }
 
-exports.spreadsheetToJson = function(options) {
+exports.spreadsheetToJson = function (options) {
 
     var allWorksheets = !!options.allWorksheets
     var expectMultipleWorksheets = allWorksheets || Array.isArray(options.worksheet)
 
     return exports.getWorksheets(options)
-    .then(function(worksheets) {
+        .then(function (worksheets) {
 
-        if (allWorksheets)
-            return worksheets
+            if (allWorksheets)
+                return worksheets
 
-        var identifiers = normalizePossibleIntList(options.worksheet, [0])
+            var identifiers = normalizePossibleIntList(options.worksheet, [0])
 
-        var selectedWorksheets = worksheets.filter(function(worksheet, index) {
-            return identifiers.indexOf(index) !== -1 || identifiers.indexOf(worksheet.title) !== -1
+            var selectedWorksheets = worksheets.filter(function (worksheet, index) {
+                return identifiers.indexOf(index) !== -1 || identifiers.indexOf(worksheet.title) !== -1
+            })
+
+            if (!expectMultipleWorksheets)
+                selectedWorksheets = selectedWorksheets.slice(0, 1)
+
+            if (selectedWorksheets.length === 0)
+                throw new Error('No worksheet found!')
+
+            return selectedWorksheets
         })
-
-        if (!expectMultipleWorksheets)
-            selectedWorksheets = selectedWorksheets.slice(0, 1)
-
-        if (selectedWorksheets.length === 0)
-            throw new Error('No worksheet found!')
-
-        return selectedWorksheets
-    })
-    .then(function(worksheets) {
-        return Promise.all(worksheets.map(function(worksheet) {
-            return worksheet.getCellsAsync()
-        }))
-    })
-    .then(function(results) {
-
-        var finalList = results.map(function(allCells) {
-            return exports.cellsToJson(allCells, options)
+        .then(function (worksheets) {
+            return Promise.all(worksheets.map(function (worksheet) {
+                return worksheet.getCellsAsync()
+            }))
         })
+        .then(function (results) {
 
-        return expectMultipleWorksheets ? finalList : finalList[0]
-    })
+            var finalList = results.map(function (allCells) {
+                return exports.cellsToJson(allCells, options)
+            })
+
+            return expectMultipleWorksheets ? finalList : finalList[0]
+        })
 }
